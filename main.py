@@ -12,32 +12,43 @@ from flask import Flask
 
 # config and settings
 import config
-from config import DevelopmentConfig
+from config import DevelopmentConfig, ProductionConfig
 
 # persistence
 from flask.ext.pymongo import PyMongo
 from pymongo import MongoClient
 
-
 # general app stuff
 app = Flask(__name__)
 app.debug = True
-app.config.from_object(config.DevelopmentConfig)
+
+# use remote db or local?
+USE_REMOTE_DB = True
+DB_URL = ""
+DB_NAME = ""
+if USE_REMOTE_DB == True:
+    app.config.from_object(config.ProductionConfig)
+    DB_URL = ProductionConfig.MONGO_DBURL
+    DB_NAME = ProductionConfig.MONGO_DBNAME   
+else:
+    app.config.from_object(config.DevelopmentConfig)
+    DB_URL = DevelopmentConfig.MONGO_DBURL
+    DB_NAME = DevelopmentConfig.MONGO_DBNAME
 
 # db 
-client = MongoClient(DevelopmentConfig.MONGO_DBURL) # pass mongourl into constructor
-db = client[DevelopmentConfig.MONGO_DBNAME]         # pass db name into client
+client = MongoClient(DB_URL) # pass mongourl into constructor
+db = client[DB_NAME]         # pass db name into client
 members = db.members                                # which model to use 
 
 # routes - general
-@app.route('/')
+@app.route("/")
 def hello_world():
-    return 'Hello, World!'
+    return "Hello, World!"
 
 # routes - member
 # db = ourcommons
 # collection = members (may have bills, motions, etc. some day)
-@app.route('/member/<member_id>')
+@app.route("/members/<member_id>")
 def get_member_information(member_id):
     # validate member_id:
     if len(member_id) < 2:
@@ -57,6 +68,7 @@ def get_member_information(member_id):
     # 1.1 item found
     # 1.1.1 returning it
     if member_json is not None:
+        print "member %s info found - returning as JSON" % member_id
         return member_json
 
     # 1.2 item not found
@@ -73,11 +85,11 @@ def get_member_information(member_id):
     # 1.2.3 return new member data
     return Member.Member().find_by_id(member_id, members)
 
-@app.route('/update/<member_id>')
+@app.route("/update/<member_id>")
 def update_cached_member_data(member_id):
     return json.dumps({"message":"/update/{member_id} route in progress"}) # should be "501 - Not Implemented"
 
 # startup
-if __name__ == '__main__':
+if __name__ == "__main__":
     port = int(environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host="0.0.0.0", port=port)
