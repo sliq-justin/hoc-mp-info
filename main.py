@@ -23,7 +23,7 @@ app = Flask(__name__)
 app.debug = True
 
 # use remote db or local?
-USE_REMOTE_DB = True
+USE_REMOTE_DB = False
 DB_URL = ""
 DB_NAME = ""
 if USE_REMOTE_DB == True:
@@ -85,9 +85,22 @@ def get_member_information(member_id):
     # 1.2.3 return new member data
     return Member.Member().find_by_id(member_id, members)
 
-@app.route("/update/<member_id>")
+@app.route("/members/<member_id>/update")
 def update_cached_member_data(member_id):
-    return json.dumps({"message":"/update/{member_id} route in progress"}) # should be "501 - Not Implemented"
+    # validate member_id:
+    if len(member_id) < 2:
+        return json.dumps({"message":"invalid member number"}) # should be "400 - Bad Request"
+
+    # fetch data from remote
+    link = "http://www.ourcommons.ca/Parliamentarians/en/members/%s/ExportRoles?current=True&output=XML" % member_id
+    member_dict = xmltodict.parse(urllib.urlopen(link).read())
+
+    # store in db
+    member_json = Member.Member()
+    member_json.update(member_id, member_dict, members)
+
+    # return new member data
+    return Member.Member().find_by_id(member_id, members)    
 
 # startup
 if __name__ == "__main__":
