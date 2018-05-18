@@ -20,10 +20,10 @@ from pymongo import MongoClient
 
 # general app stuff
 app = Flask(__name__)
-app.debug = True
+app.debug = False
 
 # use remote db or local?
-USE_REMOTE_DB = False
+USE_REMOTE_DB = True
 DB_URL = ""
 DB_NAME = ""
 if USE_REMOTE_DB == True:
