@@ -89,6 +89,10 @@ def get_member_information(member_id):
     member_json = Member.Member()
     member_json.add_to_cache(member_id, member_dict, members)
 
+    # 1.2.2.1 sanitize db:
+    # remove all that xml nonsense
+    sanitize_db()
+
     # 1.2.3 return new member data
     return Member.Member().find_by_id(member_id, members)
 
@@ -106,8 +110,30 @@ def update_cached_member_data(member_id):
     member_json = Member.Member()
     member_json.update(member_id, member_dict, members)
 
+    # sanitize db
+    sanitize_db()
+
     # return new member data
-    return Member.Member().find_by_id(member_id, members)    
+    return Member.Member().find_by_id(member_id, members)
+
+@app.route("/sanitize")
+def sanitize_db():
+    members.update_many({"MemberOfParliamentRole.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}, {"$unset":{"MemberOfParliamentRole.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}})
+    members.update_many({"MemberOfParliamentRole.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}, {"$unset":{"MemberOfParliamentRole.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}})
+
+    members.update_many({"CaucusMemberRoles.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}, {"$unset":{"CaucusMemberRoles.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}})
+    members.update_many({"CaucusMemberRoles.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}, {"$unset":{"CaucusMemberRoles.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}})
+
+    members.update_many({"ParliamentaryPositionRoles.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}, {"$unset":{"ParliamentaryPositionRoles.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}})
+    members.update_many({"ParliamentaryPositionRoles.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}, {"$unset":{"ParliamentaryPositionRoles.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}})
+
+    members.update_many({"CommitteeMemberRoles.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}, {"$unset":{"CommitteeMemberRoles.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}})
+    members.update_many({"CommitteeMemberRoles.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}, {"$unset":{"CommitteeMemberRoles.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}})
+
+    members.update_many({"ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}, {"$unset":{"ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}})
+    members.update_many({"ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}, {"$unset":{"ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}})
+    
+    return json.dumps({"message":"db cleanup complete"})
 
 # startup
 if __name__ == "__main__":
