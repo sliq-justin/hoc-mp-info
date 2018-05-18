@@ -10,30 +10,37 @@ import Member
 # basic Flask
 from flask import Flask
 
-# config and settings
-import config
-from config import DevelopmentConfig, ProductionConfig
-
 # persistence
 from flask.ext.pymongo import PyMongo
 from pymongo import MongoClient
 
 # general app stuff
 app = Flask(__name__)
-app.debug = True
+app.debug = False
 
+# config and settings
 # use remote db or local?
 USE_REMOTE_DB = False
 DB_URL = ""
 DB_NAME = ""
-if USE_REMOTE_DB == True:
-    app.config.from_object(config.ProductionConfig)
-    DB_URL = ProductionConfig.MONGO_DBURL
-    DB_NAME = ProductionConfig.MONGO_DBNAME   
+
+if (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")):
+    # probably running on Heroku
+    DB_NAME = environ["MONGO_DBNAME"]
+    DB_URL = environ["MONGO_DBURL"]
 else:
-    app.config.from_object(config.DevelopmentConfig)
-    DB_URL = DevelopmentConfig.MONGO_DBURL
-    DB_NAME = DevelopmentConfig.MONGO_DBNAME
+    # running locally
+    import config
+    from config import DevelopmentConfig, ProductionConfig
+
+    if USE_REMOTE_DB is True:
+        app.config.from_object(config.ProductionConfig)
+        DB_NAME = ProductionConfig.MONGO_DBNAME
+        DB_URL = ProductionConfig.MONGO_DBURL
+    else:
+        app.config.from_object(config.DevelopmentConfig)
+        DB_NAME = DevelopmentConfig.MONGO_DBNAME
+        DB_URL = DevelopmentConfig.MONGO_DBURL
 
 # db 
 client = MongoClient(DB_URL) # pass mongourl into constructor
