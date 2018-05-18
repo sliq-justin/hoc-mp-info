@@ -33,5 +33,18 @@ class Member:
         "CommitteeMemberRoles":self.CommitteeMemberRoles, \
         "ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles":self.ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles})
 
-    def update_cache(self, member_id, dataDict, mongoCollection):
-        print "Member.py | update_cache() | 501"
+    def update(self, member_id, dataDict, mongoCollection):
+        self.MemberId = member_id
+        self.MemberOfParliamentRole = dataDict["Profile"]["MemberOfParliamentRole"]
+        self.CaucusMemberRoles = dataDict["Profile"]["CaucusMemberRoles"]
+        self.ParliamentaryPositionRoles = dataDict["Profile"]["ParliamentaryPositionRoles"]
+        self.CommitteeMemberRoles = dataDict["Profile"]["CommitteeMemberRoles"]
+        self.ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles = dataDict["Profile"]["ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles"]
+
+        mongoCollection.find_one_and_update({"_id":str(self.MemberId)},
+        {"$set":{"MemberOfParliamentRole":self.MemberOfParliamentRole, \
+        "CaucusMemberRoles":self.CaucusMemberRoles, \
+        "ParliamentaryPositionRoles":self.ParliamentaryPositionRoles, \
+        "CommitteeMemberRoles":self.CommitteeMemberRoles, \
+        "ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles":self.ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles}},
+        {"upsert":True, "returnNewDocument":True})
