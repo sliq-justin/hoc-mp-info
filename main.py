@@ -20,7 +20,7 @@ app.debug = False
 
 # config and settings
 # use remote db or local?
-USE_REMOTE_DB = False
+USE_REMOTE_DB = True
 DB_URL = ""
 DB_NAME = ""
 
