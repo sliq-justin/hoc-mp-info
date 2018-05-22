@@ -16,20 +16,16 @@ from pymongo import MongoClient
 
 # general app stuff
 app = Flask(__name__)
-app.debug = False
+app.debug = True
 
 # config and settings
 # use remote db or local?
-USE_REMOTE_DB = True
+USE_REMOTE_DB = False
 DB_URL = ""
 DB_NAME = ""
 
-if (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")):
-    # probably running on Heroku
-    DB_NAME = environ["MONGO_DBNAME"]
-    DB_URL = environ["MONGO_DBURL"]
-else:
-    # running locally
+if environ.has_key("IS_LOCAL"):
+    print "local?"
     import config
     from config import DevelopmentConfig, ProductionConfig
 
@@ -41,7 +37,14 @@ else:
         app.config.from_object(config.DevelopmentConfig)
         DB_NAME = DevelopmentConfig.MONGO_DBNAME
         DB_URL = DevelopmentConfig.MONGO_DBURL
+else:
+    print "remote?"
+    # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
+    # probably running on Heroku
+    DB_NAME = environ["MONGO_DBNAME"]
+    DB_URL = environ["MONGO_DBURL"]
 
+   
 # db 
 client = MongoClient(DB_URL) # pass mongourl into constructor
 db = client[DB_NAME]         # pass db name into client
@@ -116,7 +119,14 @@ def update_cached_member_data(member_id):
     # return new member data
     return Member.Member().find_by_id(member_id, members)
 
-@app.route("/sanitize")
+# routes - member - work
+@app.route("/members/<member_id>/work")
+def get_member_work(member_id):
+    print "work for member %s" % member_id
+    return "work for member %s" % member_id
+
+# housecleaning
+@app.route("/members/sanitize")
 def sanitize_db():
     members.update_many({"MemberOfParliamentRole.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}, {"$unset":{"MemberOfParliamentRole.@xmlns:xsd":"http://www.w3.org/2001/XMLSchema"}})
     members.update_many({"MemberOfParliamentRole.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}, {"$unset":{"MemberOfParliamentRole.@xmlns:xsi":"http://www.w3.org/2001/XMLSchema-instance"}})
