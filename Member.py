@@ -109,26 +109,6 @@ class Member:
         "preferredLanguage":self.PreferredLanguage, \
         "webSite":self.WebSite})
 
-        # return "Member.py | add_to_cache() | return"
-
-    def update(self, member_id, dataDict, mongoCollection):
-        pass
-
-        # self.MemberId = member_id
-        # self.Email = dataDict["Profile"]["MemberOfParliamentRole"]
-        # self.Photo = ""
-        # self.PoliticalAffiliation = ""
-        # self.PreferredLanguage = dataDict["Profile"]["CaucusMemberRoles"]
-        # self.ConstituencyName = dataDict["Profile"]["ParliamentaryPositionRoles"]
-        # self.ConstituencyProvinceTerritoryName = dataDict["Profile"]["CommitteeMemberRoles"]
-        # self.WebSite = dataDict["Profile"]["ProfileParliamentaryAssociationsandInterparliamentaryGroupRoles"]
-
-        # mongoCollection.find_one_and_update({"_id":str(self.MemberId)},
-        # {"$set":{"constituencyName":self.ConstituencyName, \
-        # "constituencyProvinceTerritoryName":self.ConstituencyProvinceTerritoryName, \
-        # "email":self.Email, \
-        # "photo":self.Photo, \
-        # "politicalAffiliation":self.PoliticalAffiliation, \
-        # "preferredLanguage":self.PreferredLanguage, \
-        # "webSite":self.WebSite}},
-        # {"upsert":True, "returnNewDocument":True})
+    def update(self, member_id, mongoCollection):
+        if mongoCollection.delete_one({"_id":str(member_id)}).deleted_count == 1:
+            self.add_to_cache(member_id, mongoCollection)
