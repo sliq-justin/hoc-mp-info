@@ -86,11 +86,6 @@ class Member:
             self.PersonOfficialFirstName = firstNameString
             self.PersonOfficialLastName = fullNameString[fullNameString.find(" ") + 1:]
 
-        # self.PersonOfficialLastName
-        lastNameString = fullNameString[fullNameString.find(" ") + 1 :]
-        # print lastNameString
-        self.PersonOfficialLastName = lastNameString
-
         # self.PoliticalAffiliation:
         #   <span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.conservative.ca">Conservative</a></span>
         paStartIndex = member_substring.find("Political Party Web Site")
