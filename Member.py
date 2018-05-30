@@ -8,6 +8,8 @@ class Member:
         self.ConstituencyName = None
         self.ConstituencyProvinceTerritoryName = None
         self.Email = None
+        self.PersonOfficialFirstName = None
+        self.PersonOfficialLastName = None
         self.Photo = None
         self.PoliticalAffiliation = None
         self.PreferredLanguage = None        
@@ -63,6 +65,32 @@ class Member:
         # print emailString_trimmed
         self.Email = emailString_trimmed
 
+        # names
+        
+        nameStartIndex = dataString.find("<h2>")
+        nameEndIndex = dataString.find("</h2>")
+        fullNameString = dataString[nameStartIndex + 4 : nameEndIndex]
+        print fullNameString
+        
+        # self.PersonOfficialFirstName
+        if fullNameString.find("The Honourable") is not -1: # not found
+            full_name_without_honorrific = fullNameString[len("The Honourable") + 1:]
+            firstNameString = full_name_without_honorrific[:full_name_without_honorrific.find(" ")]
+            lastNameString = full_name_without_honorrific[full_name_without_honorrific.find(" ") + 1:]
+
+            self.PersonOfficialFirstName = firstNameString
+            self.PersonOfficialLastName = lastNameString
+        else:
+            firstNameString = fullNameString[: fullNameString.find(" ")]
+            
+            self.PersonOfficialFirstName = firstNameString
+            self.PersonOfficialLastName = fullNameString[fullNameString.find(" ") + 1:]
+
+        # self.PersonOfficialLastName
+        lastNameString = fullNameString[fullNameString.find(" ") + 1 :]
+        # print lastNameString
+        self.PersonOfficialLastName = lastNameString
+
         # self.PoliticalAffiliation:
         #   <span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.conservative.ca">Conservative</a></span>
         paStartIndex = member_substring.find("Political Party Web Site")
@@ -101,13 +129,15 @@ class Member:
 
         # create db entry
         mongoCollection.insert_one({"_id":self.MemberId, \
-        "constituencyName":self.ConstituencyName, \
-        "constituencyProvinceTerritoryName":self.ConstituencyProvinceTerritoryName, \
-        "email":self.Email, \
-        "photo":self.Photo, \
-        "politicalAffiliation":self.PoliticalAffiliation, \
-        "preferredLanguage":self.PreferredLanguage, \
-        "webSite":self.WebSite})
+        "ConstituencyName":self.ConstituencyName, \
+        "ConstituencyProvinceTerritoryName":self.ConstituencyProvinceTerritoryName, \
+        "Email":self.Email, \
+        "PersonOfficialFirstName":self.PersonOfficialFirstName, \
+        "PersonOfficialLastName":self.PersonOfficialLastName, \
+        "Photo":self.Photo, \
+        "PoliticalAffiliation":self.PoliticalAffiliation, \
+        "PreferredLanguage":self.PreferredLanguage, \
+        "WebSite":self.WebSite})
 
     def update(self, member_id, mongoCollection):
         if mongoCollection.delete_one({"_id":str(member_id)}).deleted_count == 1:
