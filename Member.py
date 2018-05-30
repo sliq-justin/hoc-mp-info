@@ -8,6 +8,7 @@ class Member:
         self.ConstituencyName = None
         self.ConstituencyProvinceTerritoryName = None
         self.Email = None
+        self.PersonShortHonorific = None
         self.PersonOfficialFirstName = None
         self.PersonOfficialLastName = None
         self.Photo = None
@@ -66,30 +67,31 @@ class Member:
         self.Email = emailString_trimmed
 
         # names
-        
         nameStartIndex = dataString.find("<h2>")
         nameEndIndex = dataString.find("</h2>")
         fullNameString = dataString[nameStartIndex + 4 : nameEndIndex]
-        print fullNameString
         
-        # self.PersonOfficialFirstName
-        if fullNameString.find("The Honourable") is not -1: # not found
-            full_name_without_honorrific = fullNameString[len("The Honourable") + 1:]
-            firstNameString = full_name_without_honorrific[:full_name_without_honorrific.find(" ")]
-            lastNameString = full_name_without_honorrific[full_name_without_honorrific.find(" ") + 1:]
+        if fullNameString.find("The Right Honourable") is not -1: # not found
+            full_name_without_honorific = fullNameString[len("The Right Honourable") + 1:]
+            firstNameString = full_name_without_honorific[:full_name_without_honorific.find(" ")]
+            lastNameString = full_name_without_honorific[full_name_without_honorific.find(" ") + 1:]
 
             self.PersonOfficialFirstName = firstNameString
             self.PersonOfficialLastName = lastNameString
+            self.PersonShortHonorific = "Rt Hon."
+        elif fullNameString.find("The Honourable") is not -1: # not found
+            full_name_without_honorific = fullNameString[len("The Honourable") + 1:]
+            firstNameString = full_name_without_honorific[:full_name_without_honorific.find(" ")]
+            lastNameString = full_name_without_honorific[full_name_without_honorific.find(" ") + 1:]
+
+            self.PersonOfficialFirstName = firstNameString
+            self.PersonOfficialLastName = lastNameString
+            self.PersonShortHonorific = "Hon."
         else:
             firstNameString = fullNameString[: fullNameString.find(" ")]
             
             self.PersonOfficialFirstName = firstNameString
             self.PersonOfficialLastName = fullNameString[fullNameString.find(" ") + 1:]
-
-        # self.PersonOfficialLastName
-        lastNameString = fullNameString[fullNameString.find(" ") + 1 :]
-        # print lastNameString
-        self.PersonOfficialLastName = lastNameString
 
         # self.PoliticalAffiliation:
         #   <span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.conservative.ca">Conservative</a></span>
@@ -132,6 +134,7 @@ class Member:
         "ConstituencyName":self.ConstituencyName, \
         "ConstituencyProvinceTerritoryName":self.ConstituencyProvinceTerritoryName, \
         "Email":self.Email, \
+        "PersonShortHonorific":self.PersonShortHonorific, \
         "PersonOfficialFirstName":self.PersonOfficialFirstName, \
         "PersonOfficialLastName":self.PersonOfficialLastName, \
         "Photo":self.Photo, \
