@@ -67,14 +67,19 @@ class Member:
         self.Email = emailString_trimmed
 
         # names
-        
         nameStartIndex = dataString.find("<h2>")
         nameEndIndex = dataString.find("</h2>")
         fullNameString = dataString[nameStartIndex + 4 : nameEndIndex]
-        print fullNameString
         
-        # self.PersonOfficialFirstName
-        if fullNameString.find("The Honourable") is not -1: # not found
+        if fullNameString.find("The Right Honourable") is not -1: # not found
+            full_name_without_honorific = fullNameString[len("The Right Honourable") + 1:]
+            firstNameString = full_name_without_honorific[:full_name_without_honorific.find(" ")]
+            lastNameString = full_name_without_honorific[full_name_without_honorific.find(" ") + 1:]
+
+            self.PersonOfficialFirstName = firstNameString
+            self.PersonOfficialLastName = lastNameString
+            self.PersonShortHonorific = "Rt Hon."
+        elif fullNameString.find("The Honourable") is not -1: # not found
             full_name_without_honorific = fullNameString[len("The Honourable") + 1:]
             firstNameString = full_name_without_honorific[:full_name_without_honorific.find(" ")]
             lastNameString = full_name_without_honorific[full_name_without_honorific.find(" ") + 1:]
@@ -129,6 +134,7 @@ class Member:
         "ConstituencyName":self.ConstituencyName, \
         "ConstituencyProvinceTerritoryName":self.ConstituencyProvinceTerritoryName, \
         "Email":self.Email, \
+        "PersonShortHonorific":self.PersonShortHonorific, \
         "PersonOfficialFirstName":self.PersonOfficialFirstName, \
         "PersonOfficialLastName":self.PersonOfficialLastName, \
         "Photo":self.Photo, \
