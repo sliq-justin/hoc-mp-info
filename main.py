@@ -86,19 +86,32 @@ def get_member_information(member_id):
     # 1.2 item not found
     print "member %s info not found - look up and save" % member_id
 
-    print "finished string parsing"
-
     # 1.2.2 storing in db
     member_json = Member.Member()
     member_json.add_to_cache(member_id, members_collection)
 
     # 1.2.2.1 sanitize db:
     # remove all that xml nonsense
-    # sanitize_db_members()
+    sanitize_db_members()
 
     # 1.2.3 return new member data
-    # return Member.Member().find_by_member_id(member_id, members_collection)
-    return json.dumps({"message":"member info not implemented"})
+    return Member.Member().find_by_member_id(member_id, members_collection)
+
+@app.route("/members/<member_id>/update-member")
+def update_cached_member_data(member_id):
+    # validate member_id:
+    if len(member_id) < 2:
+        return json.dumps({"message":"invalid member number"}) # should be "400 - Bad Request"
+
+    # store in db
+    member = Member.Member()
+    member.update(member_id, members_collection)
+
+    # sanitize db
+    sanitize_db_members()
+
+    # return new member data
+    return Member.Member().find_by_member_id(member_id, members_collection)
 
 # routes - member - roles
 # db = ourcommons
@@ -146,7 +159,7 @@ def get_member_roles(member_id):
     return Role.Role().find_by_member_id(member_id, roles_collection)
 
 @app.route("/members/<member_id>/update-roles")
-def update_cached_member_data(member_id):
+def update_cached_member_roles(member_id):
     # validate member_id:
     if len(member_id) < 2:
         return json.dumps({"message":"invalid member number"}) # should be "400 - Bad Request"
@@ -233,7 +246,8 @@ def sanitize_db_roles():
 def sanitize_db_work():
     # sanitize work collection
     # ...
-    return json.dumps({"message":"db cleanup not implemented - work"})
+    # return json.dumps({"message":"db cleanup not implemented - work"})
+    pass
 
 # startup
 if __name__ == "__main__":
