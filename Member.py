@@ -8,6 +8,7 @@ class Member:
         self.ConstituencyName = None
         self.ConstituencyProvinceTerritoryName = None
         self.Email = None
+        self.PersonShortHonorific = None
         self.PersonOfficialFirstName = None
         self.PersonOfficialLastName = None
         self.Photo = None
@@ -74,12 +75,13 @@ class Member:
         
         # self.PersonOfficialFirstName
         if fullNameString.find("The Honourable") is not -1: # not found
-            full_name_without_honorrific = fullNameString[len("The Honourable") + 1:]
-            firstNameString = full_name_without_honorrific[:full_name_without_honorrific.find(" ")]
-            lastNameString = full_name_without_honorrific[full_name_without_honorrific.find(" ") + 1:]
+            full_name_without_honorific = fullNameString[len("The Honourable") + 1:]
+            firstNameString = full_name_without_honorific[:full_name_without_honorific.find(" ")]
+            lastNameString = full_name_without_honorific[full_name_without_honorific.find(" ") + 1:]
 
             self.PersonOfficialFirstName = firstNameString
             self.PersonOfficialLastName = lastNameString
+            self.PersonShortHonorific = "Hon."
         else:
             firstNameString = fullNameString[: fullNameString.find(" ")]
             
