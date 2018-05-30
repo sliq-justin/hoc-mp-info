@@ -86,8 +86,6 @@ def get_member_information(member_id):
     # 1.2 item not found
     print "member %s info not found - look up and save" % member_id
 
-    print "finished string parsing"
-
     # 1.2.2 storing in db
     member_json = Member.Member()
     member_json.add_to_cache(member_id, members_collection)
@@ -97,8 +95,7 @@ def get_member_information(member_id):
     # sanitize_db_members()
 
     # 1.2.3 return new member data
-    # return Member.Member().find_by_member_id(member_id, members_collection)
-    return json.dumps({"message":"member info not implemented"})
+    return Member.Member().find_by_member_id(member_id, members_collection)
 
 # routes - member - roles
 # db = ourcommons
