@@ -105,3 +105,4 @@ venv.bak/
 
 # local files
 config.py
+charFilter.py
