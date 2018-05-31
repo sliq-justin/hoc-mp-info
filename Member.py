@@ -109,7 +109,7 @@ class Member:
         photoString_trimmed = photoString_long[ : photoString_long.find("class") - 2]
 
         # print photoString_trimmed
-        self.Photo = photoString_trimmed
+        self.Photo = "https:%s" % photoString_trimmed
  
         # self.PreferredLanguage:
         #   <span class="parlementarian-label">Preferred Language:</span><span class="constituency">French</span>
