@@ -29,105 +29,81 @@ class Member:
         self.MemberId = member_id
 
         link = "http://www.ourcommons.ca/Parliamentarians/en/members/%s" % member_id
-        dataString = urllib.urlopen(link).read()
+        data_string = urllib.urlopen(link).read()
 
-        startIndex = dataString.find("profile overview header")
-        endIndex = dataString.find("profile overview current")
+        member_info_substring = data_string[data_string.find("profile overview header") : data_string.find("profile overview current")]
 
-        member_substring = dataString[startIndex : endIndex]
+        # self.ConstituencyName # <a href="/Parliamentarians/en/constituencies/Ottawa-Centre(789)" title="Click to open the constituency profile">Ottawa Centre</a></span>
 
-        # print member_substring
+        constituency_name_substring_prefix = member_info_substring[member_info_substring.find("Click to open the constituency profile") : ]
+        constituency_nameString = constituency_name_substring_prefix[constituency_name_substring_prefix.find(">")+1 : constituency_name_substring_prefix.find("</a>")]
 
-        # self.ConstituencyName:
-        #   <span class="constituency"><a href="/Parliamentarians/en/constituencies/Beauport-Cote-de-Beaupre-Ile-dOrleans-Charlevoix(656)" title="Click to open the constituency profile">Beauport-C&#244;te-de-Beaupr&#233;-&#206;le d&#39;Orl&#233;ans-Charlevoix</a></span>
-        cnStartIndex = member_substring.find("Click to open the constituency profile")
-        constituencyName_substring_start = member_substring[cnStartIndex : ]
-        constituencyName_substring_end = constituencyName_substring_start[constituencyName_substring_start.find(">")+1 : constituencyName_substring_start.find("</a>")]
+        self.ConstituencyName = constituency_nameString
 
-        # print constituencyName_substring_end
-        self.ConstituencyName = constituencyName_substring_end
+        # self.ConstituencyProvinceTerritoryName # <span class="parlementarian-label">Province / Territory:</span><span class="province">Quebec</span>
+        cptn_substring_prefix = member_info_substring[member_info_substring.find("<span class=\"province"):]
+        cptn_string = cptn_substring_prefix[cptn_substring_prefix.find(">") + 1 :cptn_substring_prefix.find("</")]
 
-        # self.ConstituencyProvinceTerritoryName:
-        #   
-        #   <span class="parlementarian-label">Province / Territory:</span><span class="province">Quebec</span>
-        cptnStartIndex = member_substring.find("<span class=\"province")
-        cptnString_long = member_substring[cptnStartIndex:]
-        cptnString_trimmed = cptnString_long[cptnString_long.find(">") + 1 :cptnString_long.find("</")]
+        self.ConstituencyProvinceTerritoryName = cptn_string
 
-        # print cptnString_trimmed
-        self.ConstituencyProvinceTerritoryName = cptnString_trimmed
+        # self.email # <span class="caucus"><a title="Email this Member - Sylvie.Boucher@parl.gc.ca" href="mailto:Sylvie.Boucher@parl.gc.ca">Sylvie.Boucher@parl.gc.ca</a></span>
+        email_substring_prefix = member_info_substring[member_info_substring.find("Email this Member"):]
+        email_string = email_substring_prefix[email_substring_prefix.find(">") + 1 : email_substring_prefix.find("</")]
 
-        # self.email
-        #   <span class="caucus"><a title="Email this Member - Sylvie.Boucher@parl.gc.ca" href="mailto:Sylvie.Boucher@parl.gc.ca">Sylvie.Boucher@parl.gc.ca</a></span>
-        emailStartIndex = member_substring.find("Email this Member")
-        emailString_long = member_substring[emailStartIndex:]
-        emailString_trimmed = emailString_long[emailString_long.find(">") + 1 : emailString_long.find("</")]
-
-        # print emailString_trimmed
-        self.Email = emailString_trimmed
+        self.Email = email_string
 
         # names
-        nameStartIndex = dataString.find("<h2>")
-        nameEndIndex = dataString.find("</h2>")
-        fullNameString = dataString[nameStartIndex + 4 : nameEndIndex]
+        full_name_start_index = data_string.find("<h2>")
+        full_name_end_index = data_string.find("</h2>")
+        full_name_string = data_string[full_name_start_index + 4 : full_name_end_index]
         
-        if fullNameString.find("The Right Honourable") is not -1: # not found
-            full_name_without_honorific = fullNameString[len("The Right Honourable") + 1:]
-            firstNameString = full_name_without_honorific[:full_name_without_honorific.find(" ")]
-            lastNameString = full_name_without_honorific[full_name_without_honorific.find(" ") + 1:]
+        if full_name_string.find("The Right Honourable") is not -1: # not found
+            full_name_without_honorific = full_name_string[len("The Right Honourable") + 1:]
+            first_name_string = full_name_without_honorific[:full_name_without_honorific.find(" ")]
+            last_name_string = full_name_without_honorific[full_name_without_honorific.find(" ") + 1:]
 
-            self.PersonOfficialFirstName = firstNameString
-            self.PersonOfficialLastName = lastNameString
+            self.PersonOfficialFirstName = first_name_string
+            self.PersonOfficialLastName = last_name_string
             self.PersonShortHonorific = "Rt Hon."
-        elif fullNameString.find("The Honourable") is not -1: # not found
-            full_name_without_honorific = fullNameString[len("The Honourable") + 1:]
-            firstNameString = full_name_without_honorific[:full_name_without_honorific.find(" ")]
-            lastNameString = full_name_without_honorific[full_name_without_honorific.find(" ") + 1:]
+        elif full_name_string.find("The Honourable") is not -1: # not found
+            full_name_without_honorific = full_name_string[len("The Honourable") + 1:]
+            first_name_string = full_name_without_honorific[:full_name_without_honorific.find(" ")]
+            last_name_string = full_name_without_honorific[full_name_without_honorific.find(" ") + 1:]
 
-            self.PersonOfficialFirstName = firstNameString
-            self.PersonOfficialLastName = lastNameString
+            self.PersonOfficialFirstName = first_name_string
+            self.PersonOfficialLastName = last_name_string
             self.PersonShortHonorific = "Hon."
         else:
-            firstNameString = fullNameString[: fullNameString.find(" ")]
+            first_name_string = full_name_string[: full_name_string.find(" ")]
             
-            self.PersonOfficialFirstName = firstNameString
-            self.PersonOfficialLastName = fullNameString[fullNameString.find(" ") + 1:]
+            self.PersonOfficialFirstName = first_name_string
+            self.PersonOfficialLastName = full_name_string[full_name_string.find(" ") + 1:]
 
-        # self.PoliticalAffiliation:
-        #   <span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.conservative.ca">Conservative</a></span>
-        paStartIndex = member_substring.find("Political Party Web Site")
-        paString_long = member_substring[paStartIndex:]
-        paString_trimmed = paString_long[paString_long.find(">") + 1 : paString_long.find("</")]
+        # self.PoliticalAffiliation # <span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.conservative.ca">Conservative</a></span>
+        political_affiliation_substring_prefix = member_info_substring[member_info_substring.find("Political Party Web Site"):]
+        political_affiliation_string = political_affiliation_substring_prefix[political_affiliation_substring_prefix.find(">") + 1 : political_affiliation_substring_prefix.find("</")]
 
-        # print paString_trimmed
-        self.PoliticalAffiliation = paString_trimmed
+        self.PoliticalAffiliation = political_affiliation_string
 
-         # self.photo: 
-        #   from //www.ourcommons.ca/Parlementarians/Images/OfficialMPPhotos/42/ to class = "picture"
-        photoStartIndex = member_substring.find("src=")
-        photoString_long = member_substring[photoStartIndex + 5 :]
-        photoString_trimmed = photoString_long[ : photoString_long.find("class") - 2]
+        # self.photo # //www.ourcommons.ca/Parlementarians/Images/OfficialMPPhotos/42/...
+        photo_start_index = member_info_substring.find("src=")
+        photo_substring_prefix = member_info_substring[photo_start_index + 5 :]
+        photo_string = photo_substring_prefix[ : photo_substring_prefix.find("class") - 2]
 
-        # print photoString_trimmed
-        self.Photo = "https:%s" % photoString_trimmed
+        self.Photo = "https:%s" % photo_string
  
-        # self.PreferredLanguage:
-        #   <span class="parlementarian-label">Preferred Language:</span><span class="constituency">French</span>
-        plStartIndex = member_substring.find("Preferred Language:</span><span class=")
-        plString_long = member_substring[plStartIndex + 20 :]
-        plString_trimmed = plString_long[plString_long.find("constituency") + 14 : plString_long.find("</")]
+        # self.PreferredLanguage # <span class="parlementarian-label">Preferred Language:</span><span class="constituency">French</span>
+        preferred_language_start_index = member_info_substring.find("Preferred Language:</span><span class=")
+        preferred_language_substring_prefix = member_info_substring[preferred_language_start_index + 20 :]
+        preferred_language_string = preferred_language_substring_prefix[preferred_language_substring_prefix.find("constituency") + 14 : preferred_language_substring_prefix.find("</")]
 
-        # print plString_trimmed
-        self.PreferredLanguage = plString_trimmed
+        self.PreferredLanguage = preferred_language_string
 
-        # self.WebSite:
-        #   <a target="_blank" title="Personal Web Site - Opens a New Window" href="http://www.sylvieboucher.ca/en">www.sylvieboucher.ca/en</a> </span>
-        wsStartIndex = member_substring.find("Personal Web Site")
-        wsString_long = member_substring[wsStartIndex:]
-        wsString_trimmed = wsString_long[wsString_long.find(">") + 1 : wsString_long.find("</")]
+        # self.WebSite # <a target="_blank" title="Personal Web Site - Opens a New Window" href="http://www.sylvieboucher.ca/en">www.sylvieboucher.ca/en</a> </span>
+        website_substring_prefix = member_info_substring[member_info_substring.find("Personal Web Site"):]
+        website_string = website_substring_prefix[website_substring_prefix.find(">") + 1 : website_substring_prefix.find("</")]
 
-        # print wsString_trimmed
-        self.WebSite = wsString_trimmed
+        self.WebSite = website_string
 
         # create db entry
         mongoCollection.insert_one({"_id":self.MemberId, \
