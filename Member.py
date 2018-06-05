@@ -8,6 +8,8 @@ class Member:
         self.Caucus = None
         self.ConstituencyName = None
         self.ConstituencyProvinceTerritoryName = None
+        self.CurrentPhone = None
+        self.CurrentFax = None
         self.Email = None
         self.PartyColour = None
         self.PersonShortHonorific = None
@@ -26,12 +28,9 @@ class Member:
         else:
             return None
 
-    def add_to_cache(self, member_id, mongoCollection):
+    def add_to_cache(self, member_id, data_string, mongoCollection):
         # parse string here to populate member fields
         self.MemberId = member_id
-
-        link = "http://www.ourcommons.ca/Parliamentarians/en/members/%s" % str(member_id)
-        data_string = urllib.urlopen(link).read()
 
         member_info_substring = data_string[data_string.find("profile overview header") : data_string.find("profile overview current")]
 
@@ -135,6 +134,6 @@ class Member:
         "preferredOfficiaLanguage":self.PreferredLanguage, \
         "webSite":self.WebSite})
 
-    def update(self, member_id, mongoCollection):
+    def update(self, member_id, source_string, mongoCollection):
         if mongoCollection.delete_one({"id":member_id}).deleted_count == 1:
-            self.add_to_cache(member_id, mongoCollection)
+            self.add_to_cache(member_id, source_string, mongoCollection)

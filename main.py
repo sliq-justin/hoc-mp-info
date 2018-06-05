@@ -5,7 +5,7 @@ import json
 
 import xmltodict
 
-import Member, Role, Work
+import Member, Role, Work, MemberConstituencyOffice
 
 # basic Flask
 from flask import Flask
@@ -50,6 +50,7 @@ db = client[DB_NAME]            # pass db name into client
 members_collection = db.members            # which model to use 
 work_collection = db.work
 roles_collection = db.roles
+constituency_offices_collection = db.member_constituency_offices
 
 # routes - general
 @app.route("/")
@@ -86,13 +87,20 @@ def get_member_information(member_id):
     # 1.2 item not found
     print "member %s info not found - look up and save" % member_id
 
+    link = "http://www.ourcommons.ca/Parliamentarians/en/members/%s" % str(member_id)
+    data_string = urllib.urlopen(link).read()
+
     # 1.2.2 storing in db
     member_json = Member.Member()
-    member_json.add_to_cache(member_id, members_collection)
+    member_json.add_to_cache(member_id, data_string, members_collection)
 
     # 1.2.2.1 sanitize db:
     # remove all that xml nonsense
     sanitize_db_members()
+
+    # populate constituency offices
+    office = MemberConstituencyOffice.MemberConstituencyOffice()
+    office.add_to_cache(member_id, data_string[data_string.find("constituencyoffices"):], constituency_offices_collection)
 
     # 1.2.3 return new member data
     return Member.Member().find_by_member_id(member_id, members_collection)
@@ -103,9 +111,11 @@ def update_cached_member_data(member_id):
     if len(str(member_id)) < 2:
         return json.dumps({"message":"invalid member number"}) # should be "400 - Bad Request"
 
+    link = "http://www.ourcommons.ca/Parliamentarians/en/members/%s" % str(member_id)
+
     # store in db
     member = Member.Member()
-    member.update(member_id, members_collection)
+    member.update(member_id, urllib.urlopen(link).read(), members_collection)
 
     # sanitize db
     sanitize_db_members()
