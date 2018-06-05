@@ -60,10 +60,10 @@ def hello_world():
 # db = ourcommons
 # collection = members (may have bills, motions, etc. some day)
 
-@app.route("/members/<member_id>")
+@app.route("/members/<int:member_id>")
 def get_member_information(member_id):
     # validate member_id:
-    if len(member_id) < 2:
+    if len(str(member_id)) < 2:
         return json.dumps({"message":"invalid member number"}) # should be "400 - Bad Request"
 
     # 1 check db for requested item
@@ -97,10 +97,10 @@ def get_member_information(member_id):
     # 1.2.3 return new member data
     return Member.Member().find_by_member_id(member_id, members_collection)
 
-@app.route("/members/<member_id>/update-member")
+@app.route("/members/<int:member_id>/update")
 def update_cached_member_data(member_id):
     # validate member_id:
-    if len(member_id) < 2:
+    if len(str(member_id)) < 2:
         return json.dumps({"message":"invalid member number"}) # should be "400 - Bad Request"
 
     # store in db

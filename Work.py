@@ -7,7 +7,7 @@ class Work:
         self.FullText = {}
 
     def find_by_id(self, member_id, mongoCollection):
-        result = mongoCollection.find_one({"_id": member_id})
+        result = mongoCollection.find_one({"id": member_id}, {"_id":False})
 
         if result is not None:
             return json.dumps(result)
@@ -18,13 +18,13 @@ class Work:
         self.MemberId = member_id
         self.FullText = dataDict
 
-        mongoCollection.insert_one({"_id":self.MemberId, \
+        mongoCollection.insert_one({"id":self.MemberId, \
         "FullText":self.FullText})
 
     def update(self, member_id, dataDict, mongoCollection):
         self.MemberId = member_id
         self.FullText = dataDict
 
-        mongoCollection.find_one_and_update({"_id":str(self.MemberId)},
+        mongoCollection.find_one_and_update({"id":str(self.MemberId)},
         {"$set":{"FullText":self.FullText}},
         {"upsert":True, "returnNewDocument":True})
