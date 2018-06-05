@@ -5,9 +5,11 @@ import urllib
 class Member:
     def __init__(self):
         self.MemberId = 0
+        self.Caucus = None
         self.ConstituencyName = None
         self.ConstituencyProvinceTerritoryName = None
         self.Email = None
+        self.PartyColour = None
         self.PersonShortHonorific = None
         self.PersonOfficialFirstName = None
         self.PersonOfficialLastName = None
@@ -32,6 +34,13 @@ class Member:
         data_string = urllib.urlopen(link).read()
 
         member_info_substring = data_string[data_string.find("profile overview header") : data_string.find("profile overview current")]
+
+        # self.Caucus # <span class="parlementarian-label">Political Affiliation:</span><span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.liberal.ca">Liberal</a></span>
+        caucus_substring_prefix_long = member_info_substring[member_info_substring.find("Political Party Web Site"):]
+        caucus_substring_prefix_short = caucus_substring_prefix_long[caucus_substring_prefix_long.find(">") + 1 :]
+        caucus_substring = caucus_substring_prefix_short[:caucus_substring_prefix_short.find("</a>")]
+        
+        self.Caucus = caucus_substring
 
         # self.ConstituencyName # <a href="/Parliamentarians/en/constituencies/Ottawa-Centre(789)" title="Click to open the constituency profile">Ottawa Centre</a></span>
 
@@ -78,7 +87,12 @@ class Member:
             
             self.PersonOfficialFirstName = first_name_string
             self.PersonOfficialLastName = full_name_string[full_name_string.find(" ") + 1:]
-            # self.PersonShortHonorific = ""
+        
+        # self.partyColour # <div id="MiniFloorPlanSeat-Highlighted" style="font-size:2px; background-color:#ed2e38"> </div>
+        party_colour_prefix_long = data_string[data_string.find("MiniFloorPlanSeat-Highlighted"):]
+        party_colour = party_colour_prefix_long[party_colour_prefix_long.find("#"):party_colour_prefix_long.find(">") - 1]
+
+        self.PartyColour = party_colour
 
         # self.PoliticalAffiliation # <span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.conservative.ca">Conservative</a></span>
         political_affiliation_substring_prefix = member_info_substring[member_info_substring.find("Political Party Web Site"):]
@@ -108,12 +122,14 @@ class Member:
 
         # create db entry
         mongoCollection.insert_one({"id":self.MemberId, \
+        "caucus":self.Caucus, \
         "constituencyName":self.ConstituencyName, \
         "constituencyProvinceName":self.ConstituencyProvinceTerritoryName, \
         "emailAddress":self.Email, \
         "shortHonorific":self.PersonShortHonorific, \
         "firstName":self.PersonOfficialFirstName, \
         "lastName":self.PersonOfficialLastName, \
+        "partyColours": self.PartyColour, \
         "PhotoUrl":self.Photo, \
         "PoliticalAffiliation":self.PoliticalAffiliation, \
         "preferredOfficiaLanguage":self.PreferredLanguage, \
