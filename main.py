@@ -24,25 +24,25 @@ USE_REMOTE_DB = False
 DB_URL = ""
 DB_NAME = ""
 
-if environ.has_key("IS_LOCAL"):
-    print "local?"
-    import config
-    from config import DevelopmentConfig, ProductionConfig
+# if environ.has_key("IS_LOCAL"):
+print "local?"
+import config
+from config import DevelopmentConfig, ProductionConfig
 
-    if USE_REMOTE_DB is True:
-        app.config.from_object(config.ProductionConfig)
-        DB_NAME = ProductionConfig.MONGO_DBNAME
-        DB_URL = ProductionConfig.MONGO_DBURL
-    else:
-        app.config.from_object(config.DevelopmentConfig)
-        DB_NAME = DevelopmentConfig.MONGO_DBNAME
-        DB_URL = DevelopmentConfig.MONGO_DBURL
+if USE_REMOTE_DB is True:
+    app.config.from_object(config.ProductionConfig)
+    DB_NAME = ProductionConfig.MONGO_DBNAME
+    DB_URL = ProductionConfig.MONGO_DBURL
 else:
-    print "remote?"
-    # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
-    # probably running on Heroku
-    DB_NAME = environ["MONGO_DBNAME"]
-    DB_URL = environ["MONGO_DBURL"]
+    app.config.from_object(config.DevelopmentConfig)
+    DB_NAME = DevelopmentConfig.MONGO_DBNAME
+    DB_URL = DevelopmentConfig.MONGO_DBURL
+# else:
+#     print "remote?"
+#     # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
+#     # probably running on Heroku
+#     DB_NAME = environ["MONGO_DBNAME"]
+#     DB_URL = environ["MONGO_DBURL"]
 
 # db 
 client = MongoClient(DB_URL)    # pass mongourl into constructor
@@ -50,7 +50,7 @@ db = client[DB_NAME]            # pass db name into client
 members_collection = db.members            # which model to use 
 work_collection = db.work
 roles_collection = db.roles
-constituency_offices_collection = db.member_constituency_offices
+constituency_offices_collection = db.constituency_offices
 
 # routes - general
 @app.route("/")
@@ -61,6 +61,7 @@ def hello_world():
 # db = ourcommons
 # collection = members (may have bills, motions, etc. some day)
 
+@app.route("/members/<int:member_id>/")
 @app.route("/members/<int:member_id>")
 def get_member_information(member_id):
     # validate member_id:
@@ -98,12 +99,44 @@ def get_member_information(member_id):
     # remove all that xml nonsense
     sanitize_db_members()
 
+    # 1.2.3 return new member data
+    return Member.Member().find_by_member_id(member_id, members_collection)
+
+@app.route("/members/<int:member_id>/constituency-office")
+def get_member_office_information(member_id):
+    # validate member_id:
+    if len(str(member_id)) < 2:
+        return json.dumps({"message":"invalid member number"}) # should be "400 - Bad Request"
+
+    # 1 check db for requested item
+    # 1.1 if it exists:
+    #   1.1.1 return it
+    # 1.2 if it does not exist:
+    #   1.2.1 fetch from remote
+    #   1.2.2 store in db
+    #   1.2.3 return it
+
+    # 1.
+    office_json = MemberConstituencyOffice.MemberConstituencyOffice().find_by_member_id(member_id, constituency_offices_collection)
+
+    # 1.1 item found
+    # 1.1.1 returning it
+    if office_json is not None:
+        print "office %s info found - returning as JSON" % member_id
+        return office_json
+
+    # 1.2 item not found
+    print "office %s info not found - look up and save" % member_id
+
+    link = "http://www.ourcommons.ca/Parliamentarians/en/members/%s" % str(member_id)
+    data_string = urllib.urlopen(link).read()
+
     # populate constituency offices
     office = MemberConstituencyOffice.MemberConstituencyOffice()
     office.add_to_cache(member_id, data_string[data_string.find("constituencyoffices"):], constituency_offices_collection)
 
     # 1.2.3 return new member data
-    return Member.Member().find_by_member_id(member_id, members_collection)
+    return MemberConstituencyOffice.MemberConstituencyOffice().find_by_member_id(member_id, constituency_offices_collection)
 
 @app.route("/members/<int:member_id>/update")
 def update_cached_member_data(member_id):

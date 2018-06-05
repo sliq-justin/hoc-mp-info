@@ -27,6 +27,11 @@ class MemberConstituencyOffice:
     def add_to_cache(self, member_id, source_string, mongoCollection):
         first_office = source_string[source_string.find("<li>"):]
 
+        if first_office.find("Main Office") is not -1:
+            self.isMainOffice = True
+        else:
+            self.isMainOffice = False
+
         first_office_prefix_1 = first_office[first_office.find("<span>")+6:] 
         first_office_component_1 = first_office_prefix_1[:first_office_prefix_1.find(" (")]
         print first_office_component_1
@@ -51,10 +56,10 @@ class MemberConstituencyOffice:
 
         self.provinceCode = first_office_component_4
 
-    # create db entry
-        mongoCollection.insert_one({"id":self.memberid, \
+        # create db entry
+        mongoCollection.insert_one({"id":member_id, \
         "mpId":self.mpId, \
-        "memberid":self.memberid, \
+        "memberid":member_id, \
         "constituencyName":self.constituencyName, \
         "isMainOffice":self.isMainOffice, \
         "city":self.city, \
