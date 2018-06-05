@@ -5,9 +5,13 @@ import urllib
 class Member:
     def __init__(self):
         self.MemberId = 0
+        self.Caucus = None
         self.ConstituencyName = None
         self.ConstituencyProvinceTerritoryName = None
+        self.CurrentPhone = None
+        self.CurrentFax = None
         self.Email = None
+        self.PartyColour = None
         self.PersonShortHonorific = None
         self.PersonOfficialFirstName = None
         self.PersonOfficialLastName = None
@@ -17,21 +21,25 @@ class Member:
         self.WebSite = None
         
     def find_by_member_id(self, member_id, mongoCollection):
-        result = mongoCollection.find_one({"_id": member_id})
+        result = mongoCollection.find_one({"id": member_id}, {"_id":False})
 
         if result is not None:
             return json.dumps(result)
         else:
             return None
 
-    def add_to_cache(self, member_id, mongoCollection):
+    def add_to_cache(self, member_id, data_string, mongoCollection):
         # parse string here to populate member fields
         self.MemberId = member_id
 
-        link = "http://www.ourcommons.ca/Parliamentarians/en/members/%s" % member_id
-        data_string = urllib.urlopen(link).read()
-
         member_info_substring = data_string[data_string.find("profile overview header") : data_string.find("profile overview current")]
+
+        # self.Caucus # <span class="parlementarian-label">Political Affiliation:</span><span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.liberal.ca">Liberal</a></span>
+        caucus_substring_prefix_long = member_info_substring[member_info_substring.find("Political Party Web Site"):]
+        caucus_substring_prefix_short = caucus_substring_prefix_long[caucus_substring_prefix_long.find(">") + 1 :]
+        caucus_substring = caucus_substring_prefix_short[:caucus_substring_prefix_short.find("</a>")]
+        
+        self.Caucus = caucus_substring
 
         # self.ConstituencyName # <a href="/Parliamentarians/en/constituencies/Ottawa-Centre(789)" title="Click to open the constituency profile">Ottawa Centre</a></span>
 
@@ -78,6 +86,12 @@ class Member:
             
             self.PersonOfficialFirstName = first_name_string
             self.PersonOfficialLastName = full_name_string[full_name_string.find(" ") + 1:]
+        
+        # self.partyColour # <div id="MiniFloorPlanSeat-Highlighted" style="font-size:2px; background-color:#ed2e38"> </div>
+        party_colour_prefix_long = data_string[data_string.find("MiniFloorPlanSeat-Highlighted"):]
+        party_colour = party_colour_prefix_long[party_colour_prefix_long.find("#"):party_colour_prefix_long.find(">") - 1]
+
+        self.PartyColour = party_colour
 
         # self.PoliticalAffiliation # <span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.conservative.ca">Conservative</a></span>
         political_affiliation_substring_prefix = member_info_substring[member_info_substring.find("Political Party Web Site"):]
@@ -106,18 +120,20 @@ class Member:
         self.WebSite = website_string
 
         # create db entry
-        mongoCollection.insert_one({"_id":self.MemberId, \
-        "ConstituencyName":self.ConstituencyName, \
-        "ConstituencyProvinceTerritoryName":self.ConstituencyProvinceTerritoryName, \
-        "Email":self.Email, \
-        "PersonShortHonorific":self.PersonShortHonorific, \
-        "PersonOfficialFirstName":self.PersonOfficialFirstName, \
-        "PersonOfficialLastName":self.PersonOfficialLastName, \
-        "Photo":self.Photo, \
+        mongoCollection.insert_one({"id":self.MemberId, \
+        "caucus":self.Caucus, \
+        "constituencyName":self.ConstituencyName, \
+        "constituencyProvinceName":self.ConstituencyProvinceTerritoryName, \
+        "emailAddress":self.Email, \
+        "shortHonorific":self.PersonShortHonorific, \
+        "firstName":self.PersonOfficialFirstName, \
+        "lastName":self.PersonOfficialLastName, \
+        "partyColours": self.PartyColour, \
+        "PhotoUrl":self.Photo, \
         "PoliticalAffiliation":self.PoliticalAffiliation, \
-        "PreferredLanguage":self.PreferredLanguage, \
-        "WebSite":self.WebSite})
+        "preferredOfficiaLanguage":self.PreferredLanguage, \
+        "webSite":self.WebSite})
 
-    def update(self, member_id, mongoCollection):
-        if mongoCollection.delete_one({"_id":str(member_id)}).deleted_count == 1:
-            self.add_to_cache(member_id, mongoCollection)
+    def update(self, member_id, source_string, mongoCollection):
+        if mongoCollection.delete_one({"id":member_id}).deleted_count == 1:
+            self.add_to_cache(member_id, source_string, mongoCollection)
