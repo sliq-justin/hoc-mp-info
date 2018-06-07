@@ -160,10 +160,10 @@ def update_cached_member_data(member_id):
 # db = ourcommons
 # collection = roles
 
-@app.route("/members/<member_id>/roles")
+@app.route("/members/<int:member_id>/roles")
 def get_member_roles(member_id):
     # validate member_id:
-    if len(member_id) < 2:
+    if len(str(member_id)) < 2:
         return json.dumps({"message":"invalid member number"}) # should be "400 - Bad Request"
 
     # 1 check db for requested item
@@ -201,10 +201,10 @@ def get_member_roles(member_id):
     # 1.2.3 return new member data
     return Role.Role().find_by_member_id(member_id, roles_collection)
 
-@app.route("/members/<member_id>/update-roles")
+@app.route("/members/<int:member_id>/roles/update")
 def update_cached_member_roles(member_id):
     # validate member_id:
-    if len(member_id) < 2:
+    if len(str(member_id)) < 2:
         return json.dumps({"message":"invalid member number"}) # should be "400 - Bad Request"
 
     # fetch data from remote
@@ -225,11 +225,11 @@ def update_cached_member_roles(member_id):
 # db = ourcommons
 # collection = work
 
-@app.route("/members/<member_id>/work")
+@app.route("/members/<int:member_id>/work")
 def get_member_work(member_id):
     # return "work for member %s" % member_id
     # validate member_id:
-    if len(member_id) < 2:
+    if len(str(member_id)) < 2:
         return json.dumps({"message":"invalid member number"})
 
     member_work = Work.Work().find_by_id(member_id, work_collection)
