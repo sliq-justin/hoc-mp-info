@@ -7,7 +7,7 @@ import json
 
 import xmltodict
 
-import Member, Role, Work, MemberConstituencyOffice
+import Member, Role, Work, MemberConstituencyOffice, populate
 
 # basic Flask
 from flask import Flask
@@ -18,7 +18,7 @@ from pymongo import MongoClient
 
 # general app stuff
 app = Flask(__name__)
-app.debug = False
+app.debug = True
 
 # config and settings
 # use remote db or local?
@@ -26,25 +26,25 @@ USE_REMOTE_DB = False
 DB_URL = ""
 DB_NAME = ""
 
-if environ.has_key("IS_LOCAL"):
-    print "local?"
-    import config
-    from config import DevelopmentConfig, ProductionConfig
+# if environ.has_key("IS_LOCAL"):
+print "local?"
+import config
+from config import DevelopmentConfig, ProductionConfig
 
-    if USE_REMOTE_DB is True:
-        app.config.from_object(config.ProductionConfig)
-        DB_NAME = ProductionConfig.MONGO_DBNAME
-        DB_URL = ProductionConfig.MONGO_DBURL
-    else:
-        app.config.from_object(config.DevelopmentConfig)
-        DB_NAME = DevelopmentConfig.MONGO_DBNAME
-        DB_URL = DevelopmentConfig.MONGO_DBURL
+if USE_REMOTE_DB is True:
+    app.config.from_object(config.ProductionConfig)
+    DB_NAME = ProductionConfig.MONGO_DBNAME
+    DB_URL = ProductionConfig.MONGO_DBURL
 else:
-    print "remote?"
-    # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
-    # probably running on Heroku
-    DB_NAME = environ["MONGO_DBNAME"]
-    DB_URL = environ["MONGO_DBURL"]
+    app.config.from_object(config.DevelopmentConfig)
+    DB_NAME = DevelopmentConfig.MONGO_DBNAME
+    DB_URL = DevelopmentConfig.MONGO_DBURL
+# else:
+#     print "remote?"
+#     # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
+#     # probably running on Heroku
+#     DB_NAME = environ["MONGO_DBNAME"]
+#     DB_URL = environ["MONGO_DBURL"]
 
 # db 
 client = MongoClient(DB_URL)    # pass mongourl into constructor
@@ -63,7 +63,7 @@ def hello_world():
 # db = ourcommons
 # collection = members (may have bills, motions, etc. some day)
 
-@app.route("/members/<int:member_id>/")
+# @app.route("/members/<int:member_id>/")
 @app.route("/members/<int:member_id>")
 def get_member_information(member_id):
     # validate member_id:
@@ -254,6 +254,20 @@ def get_member_work(member_id):
     return json.dumps(work_dict)
 
 # housecleaning
+@app.route("/populate/members")
+def populate_db_members():
+    print "attempting to populate members collection"
+    duration = populate.populateMembers()
+    print "members collection populated"
+
+    return json.dumps({"members-duration":str(duration)})
+
+@app.route("/populate/roles")
+def populate_db_roles():
+    duration = populate.populateRoles()
+
+    return json.dumps({"roles-duration":str(duration)})
+
 @app.route("/sanitize")
 def sanitize_db():
     sanitize_db_members()
