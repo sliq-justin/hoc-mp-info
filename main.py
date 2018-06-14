@@ -7,7 +7,7 @@ import json
 
 import xmltodict
 
-import Member, Role, Work, MemberConstituencyOffice
+import Member, Role, Work, MemberConstituencyOffice, populate
 
 # basic Flask
 from flask import Flask
@@ -27,7 +27,7 @@ DB_URL = ""
 DB_NAME = ""
 
 if environ.has_key("IS_LOCAL"):
-    print "local?"
+    print "using local db"
     import config
     from config import DevelopmentConfig, ProductionConfig
 
@@ -40,7 +40,7 @@ if environ.has_key("IS_LOCAL"):
         DB_NAME = DevelopmentConfig.MONGO_DBNAME
         DB_URL = DevelopmentConfig.MONGO_DBURL
 else:
-    print "remote?"
+    print "using remote db"
     # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
     # probably running on Heroku
     DB_NAME = environ["MONGO_DBNAME"]
@@ -63,7 +63,7 @@ def hello_world():
 # db = ourcommons
 # collection = members (may have bills, motions, etc. some day)
 
-@app.route("/members/<int:member_id>/")
+# @app.route("/members/<int:member_id>/")
 @app.route("/members/<int:member_id>")
 def get_member_information(member_id):
     # validate member_id:
@@ -254,6 +254,20 @@ def get_member_work(member_id):
     return json.dumps(work_dict)
 
 # housecleaning
+@app.route("/populate/members")
+def populate_db_members():
+    print "attempting to populate members collection"
+    duration = populate.populateMembers()
+    print "members collection populated"
+
+    return json.dumps({"members-duration":str(duration)})
+
+@app.route("/populate/roles")
+def populate_db_roles():
+    duration = populate.populateRoles()
+
+    return json.dumps({"roles-duration":str(duration)})
+
 @app.route("/sanitize")
 def sanitize_db():
     sanitize_db_members()
