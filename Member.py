@@ -32,7 +32,7 @@ class Member:
         # parse string here to populate member fields
         self.MemberId = member_id
 
-        member_info_substring = data_string[data_string.find("profile overview header") : data_string.find("profile overview current")]
+        member_info_substring = data_string[data_string.find("profile overview header") : data_string.find("profile overview current")].decode('unicode-escape')
 
         # self.Caucus # <span class="parlementarian-label">Political Affiliation:</span><span class="caucus"><a target="_blank" title="Political Party Web Site - Opens a New Window" href="http://www.liberal.ca">Liberal</a></span>
         caucus_substring_prefix_long = member_info_substring[member_info_substring.find("Political Party Web Site"):]
@@ -129,9 +129,9 @@ class Member:
         "firstName":self.PersonOfficialFirstName, \
         "lastName":self.PersonOfficialLastName, \
         "partyColours": self.PartyColour, \
-        "PhotoUrl":self.Photo, \
+        "photoUrl":self.Photo, \
         "PoliticalAffiliation":self.PoliticalAffiliation, \
-        "preferredOfficiaLanguage":self.PreferredLanguage, \
+        "preferredOfficialLanguage":self.PreferredLanguage, \
         "webSite":self.WebSite})
 
     def update(self, member_id, source_string, mongoCollection):
