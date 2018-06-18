@@ -7,7 +7,7 @@ import json
 
 import xmltodict
 
-import Member, Role, Work, MemberConstituencyOffice, populate
+import Member, Role, Work, Meeting, MemberConstituencyOffice, populate
 
 # basic Flask
 from flask import Flask
@@ -52,6 +52,7 @@ db = client[DB_NAME]            # pass db name into client
 members_collection = db.members            # which model to use 
 work_collection = db.work
 roles_collection = db.roles
+meetings_collection = db.meetings
 constituency_offices_collection = db.constituency_offices
 
 # routes - general
@@ -252,6 +253,15 @@ def get_member_work(member_id):
     member_work.add_to_cache(member_id, work_dict, work_collection)
 
     return json.dumps(work_dict)
+
+# meetings
+@app.route("/meetings/<int:date_range>")
+def get_meetings_in_range(date_range):
+    return Meeting.Meeting().meetings(date_range, meetings_collection)
+
+@app.route("/meetings/update")
+def update_meetings():
+    return Meeting.Meeting().update(meetings_collection)
 
 # housecleaning
 @app.route("/populate/members")
