@@ -18,7 +18,7 @@ from pymongo import MongoClient
 
 # general app stuff
 app = Flask(__name__)
-app.debug = True
+app.debug = False
 
 # config and settings
 # use remote db or local?
@@ -26,25 +26,25 @@ USE_REMOTE_DB = False
 DB_URL = ""
 DB_NAME = ""
 
-# if environ.has_key("IS_LOCAL"):
-print "using local db"
-import config
-from config import DevelopmentConfig, ProductionConfig
+if environ.has_key("IS_LOCAL"):
+    print "using local db"
+    import config
+    from config import DevelopmentConfig, ProductionConfig
 
-if USE_REMOTE_DB is True:
-    app.config.from_object(config.ProductionConfig)
-    DB_NAME = ProductionConfig.MONGO_DBNAME
-    DB_URL = ProductionConfig.MONGO_DBURL
+    if USE_REMOTE_DB is True:
+        app.config.from_object(config.ProductionConfig)
+        DB_NAME = ProductionConfig.MONGO_DBNAME
+        DB_URL = ProductionConfig.MONGO_DBURL
+    else:
+        app.config.from_object(config.DevelopmentConfig)
+        DB_NAME = DevelopmentConfig.MONGO_DBNAME
+        DB_URL = DevelopmentConfig.MONGO_DBURL
 else:
-    app.config.from_object(config.DevelopmentConfig)
-    DB_NAME = DevelopmentConfig.MONGO_DBNAME
-    DB_URL = DevelopmentConfig.MONGO_DBURL
-# else:
-#     print "using remote db"
-#     # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
-#     # probably running on Heroku
-#     DB_NAME = environ["MONGO_DBNAME"]
-#     DB_URL = environ["MONGO_DBURL"]
+    print "using remote db"
+    # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
+    # probably running on Heroku
+    DB_NAME = environ["MONGO_DBNAME"]
+    DB_URL = environ["MONGO_DBURL"]
 
 # db 
 client = MongoClient(DB_URL)    # pass mongourl into constructor
