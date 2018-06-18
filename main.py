@@ -7,7 +7,7 @@ import json
 
 import xmltodict
 
-import Member, Role, Work, MemberConstituencyOffice, populate
+import Member, Role, Work, Meeting, MemberConstituencyOffice, populate
 
 # basic Flask
 from flask import Flask
@@ -18,7 +18,7 @@ from pymongo import MongoClient
 
 # general app stuff
 app = Flask(__name__)
-app.debug = False
+app.debug = True
 
 # config and settings
 # use remote db or local?
@@ -26,25 +26,25 @@ USE_REMOTE_DB = False
 DB_URL = ""
 DB_NAME = ""
 
-if environ.has_key("IS_LOCAL"):
-    print "using local db"
-    import config
-    from config import DevelopmentConfig, ProductionConfig
+# if environ.has_key("IS_LOCAL"):
+print "using local db"
+import config
+from config import DevelopmentConfig, ProductionConfig
 
-    if USE_REMOTE_DB is True:
-        app.config.from_object(config.ProductionConfig)
-        DB_NAME = ProductionConfig.MONGO_DBNAME
-        DB_URL = ProductionConfig.MONGO_DBURL
-    else:
-        app.config.from_object(config.DevelopmentConfig)
-        DB_NAME = DevelopmentConfig.MONGO_DBNAME
-        DB_URL = DevelopmentConfig.MONGO_DBURL
+if USE_REMOTE_DB is True:
+    app.config.from_object(config.ProductionConfig)
+    DB_NAME = ProductionConfig.MONGO_DBNAME
+    DB_URL = ProductionConfig.MONGO_DBURL
 else:
-    print "using remote db"
-    # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
-    # probably running on Heroku
-    DB_NAME = environ["MONGO_DBNAME"]
-    DB_URL = environ["MONGO_DBURL"]
+    app.config.from_object(config.DevelopmentConfig)
+    DB_NAME = DevelopmentConfig.MONGO_DBNAME
+    DB_URL = DevelopmentConfig.MONGO_DBURL
+# else:
+#     print "using remote db"
+#     # i.e. (environ.has_key("MONGO_DBNAME") and environ.has_key("MONGO_DBURL")) == True
+#     # probably running on Heroku
+#     DB_NAME = environ["MONGO_DBNAME"]
+#     DB_URL = environ["MONGO_DBURL"]
 
 # db 
 client = MongoClient(DB_URL)    # pass mongourl into constructor
@@ -52,6 +52,7 @@ db = client[DB_NAME]            # pass db name into client
 members_collection = db.members            # which model to use 
 work_collection = db.work
 roles_collection = db.roles
+meetings_collection = db.meetings
 constituency_offices_collection = db.constituency_offices
 
 # routes - general
@@ -252,6 +253,15 @@ def get_member_work(member_id):
     member_work.add_to_cache(member_id, work_dict, work_collection)
 
     return json.dumps(work_dict)
+
+# meetings
+@app.route("/meetings/<int:date_range>")
+def get_meetings_in_range(date_range):
+    return Meeting.Meeting().meetings(date_range, meetings_collection)
+
+@app.route("/meetings/update")
+def update_meetings():
+    return Meeting.Meeting().update(meetings_collection)
 
 # housecleaning
 @app.route("/populate/members")
