@@ -84,8 +84,8 @@ class Meeting:
         self.EntityStatus = 100
 
         today = datetime.datetime.today()
-        self.ScheduledStart = "%s-%s-%s %s:15:53" % (str(today.year), str(today.month), str(today.day), str(today.hour -1))
-        self.ScheduledEnd = "%s-%s-%s  %s:45:47" % (str(today.year), str(today.month), str(today.day), str(today.hour +3))
+        self.ScheduledStart = "%s-%s-%s %s:15:53" % (str(today.year), str(today.month), str(today.day), str(today.hour - 4))
+        self.ScheduledEnd = "%s-%s-%s  %s:45:47" % (str(today.year), str(today.month), str(today.day), str(today.hour + 4))
 
         mongoCollection.insert_one({"Description":self.Description, \
         "HasArchiveStream":self.HasArchiveStream, \
@@ -105,7 +105,7 @@ class Meeting:
         self.HasArchiveStream = False
         self.EntityStatus = 1000
 
-        self.ScheduledStart = "%s-%s-%s %s:00:53" % (str(today.year), str(today.month), str(today.day), str(today.hour + 1))
+        self.ScheduledStart = "%s-%s-%s %s:00:53" % (str(today.year), str(today.month), str(today.day), str(today.hour))
         self.ScheduledEnd = "%s-%s-%s %s:30:47" % (str(today.year), str(today.month), str(today.day), str(today.hour + 3))
 
         # save to db
