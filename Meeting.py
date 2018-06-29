@@ -93,7 +93,7 @@ class Meeting:
         "Id":self.Id, \
         "ScheduledStart":self.ScheduledStart, \
         "ScheduledEnd":self.ScheduledEnd, \
-        "StreamURL":self.StreamURL, \
+        "StreamURL":"https://pvdev1cache01.sliq.net/stream/HOC230-DUO-2/CB_Chamber/VL/FL/Playlist.m3u8?DVR", \
         "ThumbnailUri":self.ThumbnailUri, \
         "Title":self.Title})
 
